@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-const UserList = () => {
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    axios.get("http://localhost:3000/users")
-      .then(res => setUsers(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
+// frontend/src/components/UserList.jsx
+export default function UserList({ users }) {
   return (
     <div>
       <h2>Danh sách User</h2>
       <ul>
-        {users.map(user => (
-          <li key={user.id}>{user.name} - {user.email}</li>
-        ))}
+        {users.length > 0 ? (
+          users.map((user) => (
+            <li key={user._id}>
+              {user.name} - {user.email}
+            </li>
+          ))
+        ) : (
+          <p>Chưa có user nào</p>
+        )}
       </ul>
     </div>
   );
-};
-
-export default UserList;
+}

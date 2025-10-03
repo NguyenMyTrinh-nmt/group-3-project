@@ -1,42 +1,42 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
-const AddUser = () => {
+export default function AddUser({ onAdd }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newUser = { name, email };
-    axios.post("http://localhost:3000/users", newUser)
-      .then(res => {
-        alert("Thêm user thành công!");
-        setName("");
-        setEmail("");
-      })
-      .catch(err => console.error(err));
+
+    try {
+  const res = await axios.post("http://localhost:5000/users", newUser);
+  console.log("Thêm user thành công:", res.data); // log kết quả trả về
+  onAdd(res.data); 
+  setName("");
+  setEmail("");
+} catch (err) {
+  console.error("Lỗi khi thêm user:", err);
+}
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Thêm User</h2>
       <input 
-        type="text" 
-        placeholder="Name" 
-        value={name} 
-        onChange={e => setName(e.target.value)} 
+        type="text"
+        placeholder="Tên"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         required
       />
       <input 
-        type="email" 
-        placeholder="Email" 
-        value={email} 
-        onChange={e => setEmail(e.target.value)} 
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         required
       />
-      <button type="submit">Thêm</button>
+      <button type="submit">Thêm User</button>
     </form>
   );
-};
-
-export default AddUser;
+}
