@@ -1,23 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import UserList from "./components/UserList";
+import AddUser from "./components/AddUser";
 
 function App() {
+  const [users, setUsers] = useState([]);
+
+  // Lấy danh sách user từ backend
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/users");
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách user:", err);
+    }
+  };
+
+  // Chạy lần đầu và khi cần refresh
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Quản lý User</h1>
+      <AddUser onAdd={fetchUsers} />
+      <UserList users={users} />
     </div>
   );
 }
