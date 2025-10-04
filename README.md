@@ -1,2 +1,1 @@
-# Group Project
-- Backend: API endpoints (Mỹ Trinh) <--Mỹ Trinh thêm
+Đây là dòng từ backend và frontend
