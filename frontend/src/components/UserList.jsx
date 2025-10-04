@@ -1,5 +1,6 @@
-// frontend/src/components/UserList.jsx
 export default function UserList({ users }) {
+  if (!users) users = []; // đảm bảo users không undefined
+
   return (
     <div>
       <h2>Danh sách User</h2>
