@@ -1,38 +1,39 @@
-// controllers/userController.js
-let users = [];
-let nextId = 1;
+const User = require('../models/User');
 
-// GET /users
-exports.getUsers = (req, res) => {
-  res.json(users);
-};
-
-// POST /users
-exports.createUser = (req, res) => {
-  const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ message: "Name và email là bắt buộc" });
-  }
-  const user = { id: nextId++, name, email };
-  users.push(user);
-  res.status(201).json(user);
-};
-
-// PUT /users/:id - sửa user
-exports.updateUser = (req, res) => {
-  const { id } = req.params;
-  const index = users.findIndex(u => u.id == id);
-  if (index !== -1) {
-    users[index] = { ...users[index], ...req.body };
-    res.json(users[index]);
-  } else {
-    res.status(404).json({ message: "User not found" });
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// DELETE /users/:id - xóa user
-exports.deleteUser = (req, res) => {
-  const { id } = req.params;
-  users = users.filter(u => u.id != id);
-  res.json({ message: "User deleted" });
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const newUser = new User({ name, email, password });
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
