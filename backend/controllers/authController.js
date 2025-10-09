@@ -13,12 +13,9 @@ exports.signup = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: 'Email đã tồn tại' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    // Let the User model's pre-save hook handle password hashing
+    const newUser = new User({ name, email, password });
+    await newUser.save();
 
     res.status(201).json({
       message: 'Đăng ký thành công',
