@@ -1,6 +1,4 @@
-Đây là dòng từ backend và frontend
-
-# GROUP 3 PROJECT 
+da sua
 
 # Giới thiệu dự án
 Dự án này được thực hiện nhằm mô phỏng một hệ thống **quản lý người dùng (User Management System)** với đầy đủ chức năng **CRUD (Create – Read – Update – Delete)**.  
@@ -32,3 +30,4 @@ Mục tiêu chính:
 cd backend
 npm install
 npm run dev
+>>>>>>> d2b17819155a6e45157997d2f0ac0d9d0d4c7d72
