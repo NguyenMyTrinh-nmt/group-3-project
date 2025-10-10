@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import UploadAvatar from "../components/UploadAvatar"; // path điều chỉnh nếu khác
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [form, setForm] = useState({ name: "", password: "" });
   const [message, setMessage] = useState("");
+  const [avatar, setAvatar] = useState(null); // avatar preview
 
   // 🧭 Lấy thông tin user sau khi đăng nhập
   useEffect(() => {
@@ -16,6 +18,7 @@ export default function Profile() {
       .then((res) => {
         setUser(res.data);
         setForm({ name: res.data.name, password: "" });
+        if (res.data.avatar) setAvatar(res.data.avatar); // nếu backend trả avatar
       })
       .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn"));
   }, []);
@@ -43,6 +46,32 @@ export default function Profile() {
     }
   };
 
+  // 🖼️ Khi upload avatar
+  const handleAvatarUpload = async (file) => {
+    setAvatar(URL.createObjectURL(file)); // preview tạm thời
+
+    // gửi file lên backend
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/profile/avatar",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      setAvatar(res.data.avatar); // backend trả URL lưu trong database
+    } catch (err) {
+      console.error("❌ Lỗi khi upload avatar", err);
+    }
+  };
+
   if (!user) return <p>⏳ Đang tải thông tin...</p>;
 
   return (
@@ -50,6 +79,13 @@ export default function Profile() {
       <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
       {message && <p style={styles.message}>{message}</p>}
 
+      {/* Avatar upload & preview */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <UploadAvatar onUpload={handleAvatarUpload} />
+       
+      </div>
+
+      {/* Form update */}
       <form onSubmit={handleUpdate} style={styles.form}>
         <label style={styles.label}>Tên</label>
         <input

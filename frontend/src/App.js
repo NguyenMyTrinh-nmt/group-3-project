@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import Profile from "./pages/Profile"; // 👤 Thêm trang Profile
-import Admin from "./pages/Admin";     // 👑 Trang Admin
+import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
+import ForgotPassword from "./pages/ForgotPassword"; // 📨 Thêm trang quên mật khẩu
 
 function App() {
   return (
@@ -24,15 +25,19 @@ function App() {
           <Link style={styles.link} to="/admin">
             Admin
           </Link>
+          <Link style={styles.link} to="/forgot-password">
+            Quên mật khẩu
+          </Link>
         </nav>
 
-        {/* 📍 Routes */}
+        {/* 📍 Nội dung trang */}
         <div style={styles.card}>
           <Routes>
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="*" element={<Login />} />
           </Routes>
         </div>
@@ -57,7 +62,8 @@ const styles = {
   nav: {
     display: "flex",
     justifyContent: "center",
-    gap: "15px",
+    flexWrap: "wrap",
+    gap: "12px",
     marginBottom: "30px",
   },
   link: {
