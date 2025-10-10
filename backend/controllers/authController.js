@@ -13,12 +13,9 @@ exports.signup = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: 'Email đã tồn tại' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    // Let the User model's pre-save hook handle password hashing
+    const newUser = new User({ name, email, password });
+    await newUser.save();
 
     res.status(201).json({
       message: 'Đăng ký thành công',
@@ -41,10 +38,10 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Sai mật khẩu' });
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+  { id: user._id, email: user.email, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: "1h" }
+  );
 
     res.json({
       message: 'Đăng nhập thành công',
