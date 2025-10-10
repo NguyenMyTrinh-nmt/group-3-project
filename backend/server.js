@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -22,6 +23,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 
 
+console.log("__dirname:", __dirname);
+console.log("process.cwd():", process.cwd());
 console.log("🔹 MONGO_URI:", process.env.MONGO_URI);
 // Kết nối MongoDB
 mongoose.connect(process.env.MONGO_URI)
