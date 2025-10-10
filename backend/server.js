@@ -3,13 +3,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const profileRoutes = require("./routes/profile");
+const userAdminRoutes = require("./routes/userAdmin");
+
 
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/profile", profileRoutes);
-
+app.use("/users", userAdminRoutes);
 
 // Import routes
 const userRoutes = require('./routes/user');
