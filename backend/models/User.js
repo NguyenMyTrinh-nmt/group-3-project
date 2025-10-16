@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  // Fields for password reset and avatar
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
+  avatar: { type: String },
 });
 
 userSchema.pre('save', async function (next) {
