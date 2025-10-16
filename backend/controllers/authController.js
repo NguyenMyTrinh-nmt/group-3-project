@@ -174,3 +174,4 @@ exports.uploadAvatar = async (req, res) => {
     res.status(500).json({ message: "Lỗi upload avatar" });
   }
 };
+
