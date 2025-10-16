@@ -10,6 +10,8 @@ router.post('/login', authController.login);
 router.post('/logout', authController.logout);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
-
+router.post("/refresh-token", authController.refreshToken);
+// Alias để phù hợp với Postman URL bạn đang dùng
+router.post("/refresh", authController.refreshToken);
 
 module.exports = router;

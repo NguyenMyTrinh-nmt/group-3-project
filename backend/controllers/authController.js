@@ -33,41 +33,83 @@ exports.signup = async (req, res) => {
 
 // [POST] /api/auth/login
 exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Email không tồn tại' });
+  try {
+    // Defensive: ensure secrets are configured
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({
+        message: "Server misconfigured: missing JWT secrets",
+      });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: 'Sai mật khẩu' });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Email không tồn tại' });
 
-   
-    const token = jwt.sign(
-  { id: user._id, email: user.email, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "1h" }
-  );
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: 'Sai mật khẩu' });
 
-    res.json({
-      message: 'Đăng nhập thành công',
-      token,
-      user: { id: user._id, name: user.name, email: user.email },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    // ====== 🔐 Tạo Access Token và Refresh Token ======
+    const accessToken = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" } // Access Token có hạn 1 giờ
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" } // Refresh Token có hạn 7 ngày
+    );
+
+    // ====== 💾 Lưu Refresh Token vào Database ======
+    await RefreshToken.create({
+      userId: user._id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    // ====== 📨 Trả về phản hồi ======
+    res.json({
+      message: 'Đăng nhập thành công',
+      accessToken,
+      refreshToken,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
+
+
+// [POST] /api/auth/logout
+// exports.logout = async (req, res) => {
+//   try {
+//     // Với JWT thì logout chỉ cần xóa token phía client
+//     res.json({ message: 'Đăng xuất thành công (xóa token phía client)' });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
 
 // [POST] /api/auth/logout
 exports.logout = async (req, res) => {
-  try {
-    // Với JWT thì logout chỉ cần xóa token phía client
-    res.json({ message: 'Đăng xuất thành công (xóa token phía client)' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  try {
+    const { refreshToken } = req.body;
+
+    // Nếu có refreshToken, xóa nó khỏi DB để vô hiệu hóa
+    if (refreshToken) {
+      await RefreshToken.deleteOne({ token: refreshToken });
+    }
+
+    // Với JWT thì logout chỉ cần xóa token phía client
+    res.json({ message: 'Đăng xuất thành công (xóa token phía client)' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
+
 
 // [POST] /api/auth/forgot-password
 exports.forgotPassword = async (req, res) => {
@@ -173,5 +215,57 @@ exports.uploadAvatar = async (req, res) => {
     console.error("Lỗi Upload Avatar:", error);
     res.status(500).json({ message: "Lỗi upload avatar" });
   }
+};
+
+
+//Tạo hàm sinh token trong authController.js
+const RefreshToken = require("../models/RefreshToken");
+// Tạo Access Token
+const generateAccessToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1m" } // access token hết hạn nhanh để test
+  );
+};
+
+// Tạo Refresh Token
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
+
+// [POST] /api/auth/refresh-token
+exports.refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(401).json({ message: "Missing token" });
+
+  try {
+    // Kiểm tra token trong DB
+    const storedToken = await RefreshToken.findOne({ token: refreshToken });
+    if (!storedToken) return res.status(403).json({ message: "Invalid token" });
+
+    // Xác thực token hợp lệ và lấy userId từ payload
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, payload) => {
+      if (err) return res.status(403).json({ message: "Token expired" });
+
+      try {
+        // Lấy user từ DB để cấp access token đầy đủ claims
+        const user = await User.findById(payload.id).select("_id email role");
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const newAccessToken = generateAccessToken(user);
+        return res.status(200).json({ accessToken: newAccessToken });
+      } catch (innerErr) {
+        return res.status(500).json({ message: innerErr.message });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
