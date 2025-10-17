@@ -1,16 +1,16 @@
-<<<<<<< HEAD
+
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import ForgotPassword from "./pages/ForgotPassword"; // 📨 Thêm trang quên mật khẩu
-=======
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import UserList from "./components/UserList";
 import AddUser from "./components/AddUser";
->>>>>>> origin/backend
+
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -29,9 +29,14 @@ function App() {
   useEffect(() => {
     fetchUsers();
   }, []);
+   <div className="App">
+      <h1>Quản lý User</h1>
+      <AddUser onAdd={fetchUsers} />
+      <UserList users={users} />
+    </div>
 
   return (
-<<<<<<< HEAD
+        
     <Router>
       <div style={styles.container}>
         <h1 style={styles.title}>🌐 Ứng dụng Authentication</h1>
@@ -70,6 +75,7 @@ function App() {
     </Router>
   );
 }
+export default App;
 
 const styles = {
   container: {
@@ -109,15 +115,7 @@ const styles = {
   },
 };
 
-export default App;
-=======
-    <div className="App">
-      <h1>Quản lý User</h1>
-      <AddUser onAdd={fetchUsers} />
-      <UserList users={users} />
-    </div>
-  );
-}
 
-export default App;
->>>>>>> origin/backend
+
+
+ 
