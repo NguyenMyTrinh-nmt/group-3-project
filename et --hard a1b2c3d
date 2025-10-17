@@ -1,0 +1,46 @@
+[33mf23cd2d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m)[m lưu thay đổi
+[33m7b5ce08[m  lưu file api và auth
+[33m470113f[m[33m ([m[1;31morigin/develop[m[33m, [m[1;31morigin/backend-auth[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: hoàn thành hoạt động 4
+[33med93a49[m Lưu tạm trước khi rebase
+[33m119c670[m Pus code backend hoạt động 4
+[33mb21b221[m Merge pull request #13 from NguyenMyTrinh-nmt/develop
+[33mce92fbc[m Merge branch 'backend-auth' into develop
+[33me6b282f[m done backend features
+[33mfdb4cb0[m Hoàn thành API /users + RBAC (Hoạt động 3)
+[33me6e4af9[m feat: Commit profile route and configuration files
+[33m48e2c50[m Resolve merge conflict in .gitignore
+[33m79dcd39[m Thêm .gitignore để bỏ qua node_modules
+[33m8db5693[m Add Profile page and API integration for activity 2
+[33m2b979a4[m Hoàn thành Hoạt động 2 - trang Profile cập nhật thông tin
+[33mc84835e[m feat: Hoàn thành API signup và login (Authentication cơ bản)
+[33mc3eea5c[m Merge pull request nhánh backend-auth vào nhánh develop
+[33m53ded5b[m Thêm file authRoutes.js và các route đăng ký, đăng nhập, đăng xuất
+[33m3d8d8eb[m Hoàn thành hoạt động 1 buổi 5 - Authentication
+[33md6045ef[m Hoàn thiện backend auth (signup, login, logout, user CRUD)
+[33m1fe3e3f[m Tạo API Authentication backend (signup, login, logout)
+[33m4bbab92[m Merge branch 'develop' of https://github.com/NguyenMyTrinh-nmt/group-3-project into develop
+[33m6b9229a[m Merge remote-tracking branch 'origin/frontend' into develop
+[33md2b1781[m Resolve conflict and update README
+[33m7101131[m Merge branch 'develop' of https://github.com/NguyenMyTrinh-nmt/group-3-project into develop
+[33m5a088a4[m Merge branch 'database' into develop
+[33mfff6417[m Merge branch 'backend' into develop
+[33m2add514[m Hoàn thiện frontend: xử lý xung đột & squash commit
+[33mba54ccd[m[33m ([m[1;31morigin/backend[m[33m)[m Resolve xung đột merge frontend vào backend
+[33m396ca82[m Backend: add README note about API
+[33mbb06102[m frontend: add README note about frontend setup
+[33m86fb4c2[m Backend: add README note about API
+[33m485cd8c[m Merge pull request #4 from NguyenMyTrinh-nmt/frontend
+[33mce8b528[m Thêm chức năng Sửa/Xóa user trên React
+[33md877139[m Merge pull request #3 from NguyenMyTrinh-nmt/backend
+[33m039afa6[m Thêm API PUT/DELETE cho User
+[33m7134c63[m Hoạt động 8: validation + state nâng cao
+[33mef1803e[m Frontend: add UserList and AddUser, connect to backend
+[33mdee42d0[m Frontend: add UserList and AddUser, connect to backend
+[33mdbe6229[m Thêm API GET/POST User
+[33m7207ef5[m Thêm giao diện UserList + AddUser và kết nối API
+[33m87ddd93[m[33m ([m[1;31morigin/database[m[33m)[m feat: Hoan tat ket noi MongoDB va them .gitignore
+[33m414bc15[m feat: Implement GET/POST APIs and Mongoose integration
+[33m6b3c670[m Thêm README mô tả vai trò Frontend
+[33m5f48c93[m Cập nhật chi tiết vai trò của thành viên trong README
+[33m9bc7a71[m Tạo nhánh Backend
+[33mc5d1441[m Tạo nhánh develop
