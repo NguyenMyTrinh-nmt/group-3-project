@@ -1,43 +1,36 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import UploadAvatar from "../components/UploadAvatar"; // path điều chỉnh nếu khác
+import api from "../api/axios";        // dùng axios instance thay vì axios trực tiếp
+import { logout } from "../api/auth";  // hàm logout riêng
+import UploadAvatar from "../components/UploadAvatar";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [form, setForm] = useState({ name: "", password: "" });
   const [message, setMessage] = useState("");
-  const [avatar, setAvatar] = useState(null); // avatar preview
+  const [avatar, setAvatar] = useState(null);
 
   // 🧭 Lấy thông tin user sau khi đăng nhập
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    axios
-      .get("http://localhost:5000/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    api
+      .get("/profile")
       .then((res) => {
         setUser(res.data);
         setForm({ name: res.data.name, password: "" });
-        if (res.data.avatar) setAvatar(res.data.avatar); // nếu backend trả avatar
+        if (res.data.avatar) setAvatar(res.data.avatar);
       })
       .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn"));
   }, []);
 
-  // ✍️ Hàm thay đổi form
+  // ✍️ Thay đổi form
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 💾 Hàm cập nhật thông tin
+  // 💾 Cập nhật thông tin
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
     try {
-      const res = await axios.put(
-        "http://localhost:5000/profile",
-        form,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.put("/profile", form);
       setUser(res.data);
       setMessage("✅ Cập nhật thông tin thành công!");
       setForm({ ...form, password: "" });
@@ -46,27 +39,18 @@ export default function Profile() {
     }
   };
 
-  // 🖼️ Khi upload avatar
+  // 🖼️ Upload avatar
   const handleAvatarUpload = async (file) => {
-    setAvatar(URL.createObjectURL(file)); // preview tạm thời
+    setAvatar(URL.createObjectURL(file)); // preview tạm
 
-    // gửi file lên backend
-    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("avatar", file);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/profile/avatar",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      setAvatar(res.data.avatar); // backend trả URL lưu trong database
+      const res = await api.post("/profile/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setAvatar(res.data.avatar);
     } catch (err) {
       console.error("❌ Lỗi khi upload avatar", err);
     }
@@ -82,7 +66,13 @@ export default function Profile() {
       {/* Avatar upload & preview */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <UploadAvatar onUpload={handleAvatarUpload} />
-       
+        {avatar && (
+          <img
+            src={avatar}
+            alt="Avatar"
+            style={{ width: "100px", height: "100px", borderRadius: "50%", marginTop: "10px" }}
+          />
+        )}
       </div>
 
       {/* Form update */}
@@ -110,6 +100,24 @@ export default function Profile() {
           Lưu thay đổi
         </button>
       </form>
+
+      {/* 🔸 Nút Logout */}
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button
+          onClick={logout}
+          style={{
+            backgroundColor: "#d9534f",
+            color: "white",
+            padding: "10px 15px",
+            borderRadius: "6px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

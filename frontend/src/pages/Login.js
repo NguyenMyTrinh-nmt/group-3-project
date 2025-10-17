@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios"; // ✅ import axios instance có interceptor
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -14,8 +14,13 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/login", form);
-      localStorage.setItem("token", res.data.token);
+      // ✅ gọi API login
+      const res = await api.post("/auth/login", form);
+
+      // ✅ lưu token
+      localStorage.setItem("accessToken", res.data.accessToken);
+      localStorage.setItem("refreshToken", res.data.refreshToken);
+
       setMessage("🎉 Đăng nhập thành công!");
       setTimeout(() => navigate("/profile"), 800);
     } catch (err) {
