@@ -26,7 +26,6 @@ async function seedUsers() {
     const users = [
       { name: "user", email: "user@gmail.com", password: "123456", role: "user" },
       { name: "admin", email: "admin@gmail.com", password: "123456", role: "admin" },
-      { name: "user1", email: "user1@gmail.com", password: "123456", role: "user" },
       { name: "moderator", email: "moderator@gmail.com", password: "123456", role: "moderator" },
     ];
 
