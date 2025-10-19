@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+<<<<<<< Updated upstream
 const User = require("../models/User"); // model user
 const verifyToken = require("../middleware/auth"); // middleware JWT
 
@@ -31,6 +32,10 @@ router.put("/", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 
+=======
+router.get("/", (req, res) => {
+  res.json({ message: "Lấy thông tin thành công!" });
+>>>>>>> Stashed changes
 });
 
 module.exports = router;
