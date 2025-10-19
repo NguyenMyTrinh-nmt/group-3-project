@@ -1,25 +1,165 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import api, { logout } from "../api/auth"; // dùng axios interceptor + logout
 import UploadAvatar from "../components/UploadAvatar";
 
 export default function Profile() {
+  const [user, setUser] = useState(null);
+  const [form, setForm] = useState({ name: "", password: "" });
+  const [message, setMessage] = useState("");
   const [avatar, setAvatar] = useState(null);
 
-  const handleUpload = (file) => {
-    setAvatar(URL.createObjectURL(file)); // hiển thị preview
-    // TODO: upload file lên backend nếu muốn lưu vĩnh viễn
+  // 📥 Lấy thông tin user sau khi đăng nhập
+  useEffect(() => {
+    api.get("/profile")
+      .then((res) => {
+        setUser(res.data);
+        setForm({ name: res.data.name, password: "" });
+        if (res.data.avatar) setAvatar(res.data.avatar);
+      })
+      .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn"));
+  }, []);
+
+  // ✍️ Khi thay đổi input
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 💾 Cập nhật thông tin
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.put("/profile", form);
+      setUser(res.data);
+      setMessage("✅ Cập nhật thông tin thành công!");
+      setForm({ ...form, password: "" });
+    } catch (err) {
+      setMessage("❌ Lỗi khi cập nhật thông tin!");
+    }
+  };
+
+  // 🖼️ Upload avatar
+  const handleAvatarUpload = async (file) => {
+    setAvatar(URL.createObjectURL(file));
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await api.post("/profile/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setAvatar(res.data.avatar);
+    } catch (err) {
+      console.error("❌ Lỗi upload avatar", err);
+    }
+  };
+
+  if (!user) return <p>⏳ Đang tải thông tin...</p>;
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold">Profile</h2>
-      <UploadAvatar onUpload={handleUpload} />
-      {avatar && (
-        <img
-          src={avatar}
-          alt="avatar"
-          className="w-32 h-32 rounded-full mt-4"
+    <div style={styles.container}>
+      <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
+      {message && <p style={styles.message}>{message}</p>}
+
+      {/* Upload avatar */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <UploadAvatar onUpload={handleAvatarUpload} />
+        {avatar && (
+          <img
+            src={avatar}
+            alt="avatar"
+            style={{ width: "100px", height: "100px", borderRadius: "50%", marginTop: "10px" }}
+          />
+        )}
+      </div>
+
+      {/* Form update */}
+      <form onSubmit={handleUpdate} style={styles.form}>
+        <label style={styles.label}>Tên</label>
+        <input
+          type="text"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          style={styles.input}
         />
-      )}
+
+        <label style={styles.label}>Mật khẩu mới</label>
+        <input
+          type="password"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="Để trống nếu không đổi"
+          style={styles.input}
+        />
+
+        <button type="submit" style={styles.updateBtn}>Lưu thay đổi</button>
+      </form>
+
+      {/* Logout */}
+      <button onClick={logout} style={styles.logoutBtn}>
+        🚪 Đăng xuất
+      </button>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    maxWidth: "400px",
+    margin: "0 auto",
+    background: "#f9f9f9",
+    padding: "25px",
+    borderRadius: "10px",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+  },
+  title: {
+    textAlign: "center",
+    color: "#28a745",
+    marginBottom: "15px",
+  },
+  message: {
+    textAlign: "center",
+    color: "#d9534f",
+    marginBottom: "10px",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
+  },
+  label: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+  input: {
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "15px",
+  },
+  updateBtn: {
+    backgroundColor: "#28a745",
+    color: "white",
+    padding: "12px",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "15px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "0.3s",
+  },
+  logoutBtn: {
+    backgroundColor: "#d9534f",
+    color: "white",
+    padding: "12px",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "15px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "0.3s",
+    width: "100%",
+    marginTop: "15px",
+  },
+};

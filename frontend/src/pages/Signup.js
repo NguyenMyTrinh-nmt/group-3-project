@@ -2,7 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 
 export default function Signup() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  // Sửa name → username để khớp backend
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
@@ -14,9 +15,10 @@ export default function Signup() {
     try {
       await axios.post("http://localhost:5000/signup", form);
       setMessage("🎉 Đăng ký thành công!");
-      setForm({ name: "", email: "", password: "" });
+      setForm({ username: "", email: "", password: "" });
     } catch (err) {
-      setMessage("⚠️ Email đã tồn tại hoặc có lỗi!");
+      console.log(err.response?.data); // debug message từ server
+      setMessage(err.response?.data?.message || "⚠️ Có lỗi xảy ra!");
     }
   };
 
@@ -26,9 +28,9 @@ export default function Signup() {
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
-          name="name"
-          placeholder="Họ tên"
-          value={form.name}
+          name="username"  // sửa name
+          placeholder="Tên đăng nhập"
+          value={form.username}
           onChange={handleChange}
           required
           style={styles.input}

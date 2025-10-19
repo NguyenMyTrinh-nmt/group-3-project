@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     try {
       // ✅ gọi API login
-      const res = await api.post("/auth/login", form);
+      const res = await api.post("/login", form);
 
       // ✅ lưu token
       localStorage.setItem("accessToken", res.data.accessToken);
