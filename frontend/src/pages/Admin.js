@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
   // 🧭 Lấy danh sách user
   useEffect(() => {
     const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+    if (role !== "admin") {
+      navigate("/"); // quay lại nếu không phải admin
+    }
+    
     axios
       .get("http://localhost:5000/users", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUsers(res.data))
       .catch(() => setMessage("❌ Không có quyền truy cập hoặc lỗi server"));
-  }, []);
+
+  }, [navigate]);
+   return <h1>Trang quản lý User (Admin)</h1>;
+  
 
   // 🗑️ Xóa user
   const handleDelete = (id) => {
