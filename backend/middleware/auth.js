@@ -7,7 +7,7 @@ module.exports = function (req, res, next) {
 
   try {
     // Giải mã token để lấy thông tin user
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
+   const verified = jwt.verify(token, process.env.JWT_SECRET || 'MY_SECRET_KEY_123');
     req.user = verified; // Lưu user id vào req.user để các route khác dùng
     next();
   } catch (error) {

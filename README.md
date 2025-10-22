@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 da sua
 
 # Giới thiệu dự án
@@ -32,11 +31,3 @@ cd backend
 npm install
 npm run dev
 >>>>>>> d2b17819155a6e45157997d2f0ac0d9d0d4c7d72
-=======
-<<<<<<< HEAD
-# Group Project
-- Frontend: React UI (SV2) — Thêm hướng dẫn cài đặt cho frontend.  <-- SV2 thêm
-=======
-Đây là dòng từ backend và frontend
->>>>>>> origin/backend
->>>>>>> frontend

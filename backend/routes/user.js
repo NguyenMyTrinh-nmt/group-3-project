@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { checkRole } = require('../middleware/checkRole');
 
 // CRUD user routes
-router.get('/', checkRole(['admin']), userController.getUsers);
-router.post('/', checkRole(['admin']), userController.createUser);
-router.put('/:id', checkRole(['admin']), userController.updateUser);
-router.delete('/:id', checkRole(['admin']), userController.deleteUser);
+router.get('/', userController.getUsers);
+router.post('/', userController.createUser);
+router.put('/:id', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
+// Auth
+router.post('/signup', userController.signup); // ✅ thêm route đăng ký
+router.post('/login', userController.login); // ✅ thêm route đăng nhập
+
+// CRUD user
+router.get('/users', userController.getUsers);
+router.post('/users', userController.createUser);
+router.put('/users/:id', userController.updateUser);
+router.delete('/users/:id', userController.deleteUser);
 
 module.exports = router;

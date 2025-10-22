@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const User = require("../models/User"); // model user
 const verifyToken = require("../middleware/auth"); // middleware JWT
 
@@ -29,6 +30,8 @@ router.put("/", verifyToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+
+
 });
 
 module.exports = router;
