@@ -24,7 +24,6 @@ app.use('/users', userRoutes); // Mount route
 const profileRoutes = require('./routes/Profile');
 app.use("/profile", profileRoutes);
 
-
 // Khởi động server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
