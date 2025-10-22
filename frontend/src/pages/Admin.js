@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import React, { useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 export default function Admin() {
@@ -24,7 +24,6 @@ export default function Admin() {
       .catch(() => setMessage("❌ Không có quyền truy cập hoặc lỗi server"));
 
   }, [navigate]);
-   return <h1>Trang quản lý User (Admin)</h1>;
   
 
   // 🗑️ Xóa user
