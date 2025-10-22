@@ -44,15 +44,17 @@ export default function Profile() {
     setAvatar(URL.createObjectURL(file)); // preview tạm
 
     const formData = new FormData();
-    formData.append("avatar", file);
+   formData.append("avatar", file);
 
     try {
       const res = await api.post("/profile/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setAvatar(res.data.avatar);
+      setMessage("✅ Upload avatar thành công!");
     } catch (err) {
       console.error("❌ Lỗi khi upload avatar", err);
+      setMessage("❌ Lỗi khi upload avatar");
     }
   };
 
@@ -63,7 +65,7 @@ export default function Profile() {
       <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
       {message && <p style={styles.message}>{message}</p>}
 
-      {/* Avatar upload & preview */}
+     
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <UploadAvatar onUpload={handleAvatarUpload} />
         {avatar && (
