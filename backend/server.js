@@ -40,6 +40,10 @@ app.use('/api/auth', authRoutes);
 
 console.log("process.cwd():", process.cwd());
 console.log("🔹 MONGO_URI:", process.env.MONGO_URI);
+console.log("🔐 JWT secrets loaded?", {
+  JWT_SECRET: Boolean(process.env.JWT_SECRET),
+  JWT_REFRESH_SECRET: Boolean(process.env.JWT_REFRESH_SECRET),
+});
 // Kết nối MongoDB và Khởi động Server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

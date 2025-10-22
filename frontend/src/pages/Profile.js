@@ -1,87 +1,123 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";        // dùng axios instance thay vì axios trực tiếp
+import { logout } from "../api/auth";  // hàm logout riêng
+import UploadAvatar from "../components/UploadAvatar";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [form, setForm] = useState({ name: "", password: "" });
   const [message, setMessage] = useState("");
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [success, setSuccess] = useState("");
+  const [avatar, setAvatar] = useState(null);
 
+  // 🧭 Lấy thông tin user sau khi đăng nhập
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setMessage("❌ Bạn chưa đăng nhập!");
-      return;
-    }
-
-    axios
-      .get("http://localhost:5000/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    api
+      .get("/profile")
       .then((res) => {
         setUser(res.data);
-        setName(res.data.name);
+        setForm({ name: res.data.name, password: "" });
+        if (res.data.avatar) setAvatar(res.data.avatar);
       })
-      .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn!"));
+      .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn"));
   }, []);
 
+  // ✍️ Thay đổi form
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // 💾 Cập nhật thông tin
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setSuccess("");
-
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.put(
-        "http://localhost:5000/profile",
-        { name, password },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.put("/profile", form);
       setUser(res.data);
-      setPassword("");
-      setSuccess("✅ Cập nhật thông tin thành công!");
+      setMessage("✅ Cập nhật thông tin thành công!");
+      setForm({ ...form, password: "" });
     } catch (err) {
-      setMessage("❌ Có lỗi xảy ra khi cập nhật!");
+      setMessage("❌ Lỗi khi cập nhật thông tin!");
     }
   };
 
-  if (message) return <p style={styles.message}>{message}</p>;
-  if (!user) return <p>Đang tải...</p>;
+  // 🖼️ Upload avatar
+  const handleAvatarUpload = async (file) => {
+    setAvatar(URL.createObjectURL(file)); // preview tạm
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await api.post("/profile/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setAvatar(res.data.avatar);
+    } catch (err) {
+      console.error("❌ Lỗi khi upload avatar", err);
+    }
+  };
+
+  if (!user) return <p>⏳ Đang tải thông tin...</p>;
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Thông tin cá nhân</h2>
+      <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
+      {message && <p style={styles.message}>{message}</p>}
 
-      <div style={styles.infoBox}>
-        <p>
-          <strong>Tên:</strong> {user.name}
-        </p>
-        <p>
-          <strong>Email:</strong> {user.email}
-        </p>
+      {/* Avatar upload & preview */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <UploadAvatar onUpload={handleAvatarUpload} />
+        {avatar && (
+          <img
+            src={avatar}
+            alt="Avatar"
+            style={{ width: "100px", height: "100px", borderRadius: "50%", marginTop: "10px" }}
+          />
+        )}
       </div>
 
-      <form style={styles.form} onSubmit={handleUpdate}>
-        <h3 style={styles.subtitle}>Cập nhật thông tin</h3>
+      {/* Form update */}
+      <form onSubmit={handleUpdate} style={styles.form}>
+        <label style={styles.label}>Tên</label>
         <input
           type="text"
-          placeholder="Tên mới..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          name="name"
+          value={form.name}
+          onChange={handleChange}
           style={styles.input}
         />
+
+        <label style={styles.label}>Mật khẩu mới</label>
         <input
           type="password"
-          placeholder="Mật khẩu mới (bỏ trống nếu không đổi)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="Để trống nếu không đổi"
           style={styles.input}
         />
-        <button type="submit" style={styles.button}>
-          Cập nhật
+
+        <button type="submit" style={styles.updateBtn}>
+          Lưu thay đổi
         </button>
-        {success && <p style={styles.success}>{success}</p>}
       </form>
+
+      {/* 🔸 Nút Logout */}
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button
+          onClick={logout}
+          style={{
+            backgroundColor: "#d9534f",
+            color: "white",
+            padding: "10px 15px",
+            borderRadius: "6px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
@@ -91,54 +127,44 @@ const styles = {
     maxWidth: "400px",
     margin: "0 auto",
     background: "#f9f9f9",
-    padding: "20px",
+    padding: "25px",
     borderRadius: "10px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
   },
   title: {
     textAlign: "center",
-    color: "#2d2d2d",
-    marginBottom: "10px",
-  },
-  subtitle: {
-    textAlign: "center",
-    color: "#444",
-    marginBottom: "10px",
-  },
-  infoBox: {
-    background: "#fff",
-    borderRadius: "8px",
-    padding: "15px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+    color: "#28a745",
     marginBottom: "15px",
+  },
+  message: {
+    textAlign: "center",
+    color: "#d9534f",
+    marginBottom: "10px",
   },
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "15px",
+  },
+  label: {
+    fontWeight: "bold",
+    color: "#333",
   },
   input: {
     padding: "10px",
     borderRadius: "6px",
     border: "1px solid #ccc",
-    outline: "none",
+    fontSize: "15px",
   },
-  button: {
-    background: "#28a745",
-    color: "#fff",
-    padding: "10px",
+  updateBtn: {
+    backgroundColor: "#28a745",
+    color: "white",
+    padding: "12px",
     border: "none",
     borderRadius: "6px",
-    cursor: "pointer",
+    fontSize: "15px",
     fontWeight: "bold",
-  },
-  message: {
-    textAlign: "center",
-    color: "#d9534f",
-  },
-  success: {
-    textAlign: "center",
-    color: "#28a745",
-    fontSize: "14px",
+    cursor: "pointer",
+    transition: "0.3s",
   },
 };
