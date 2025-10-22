@@ -19,10 +19,14 @@ mongoose.connect(
 .catch((err) => console.error("❌ Lỗi kết nối MongoDB:", err));
 
 // Import routes
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/user');
-app.use('/users', userRoutes); // Mount route
 const profileRoutes = require('./routes/Profile');
-app.use("/profile", profileRoutes);
+
+// Mount routes
+app.use('/', authRoutes); // Exposes signup/login without /api/auth prefix
+app.use('/users', userRoutes);
+app.use('/profile', profileRoutes);
 
 
 // Khởi động server

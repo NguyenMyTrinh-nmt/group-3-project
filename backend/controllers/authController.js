@@ -83,15 +83,6 @@ exports.login = async (req, res) => {
 };
 
 
-// [POST] /api/auth/logout
-// exports.logout = async (req, res) => {
-//   try {
-//     // Với JWT thì logout chỉ cần xóa token phía client
-//     res.json({ message: 'Đăng xuất thành công (xóa token phía client)' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 
 // [POST] /api/auth/logout
 exports.logout = async (req, res) => {
@@ -113,65 +104,91 @@ exports.logout = async (req, res) => {
 
 // [POST] /api/auth/forgot-password
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "Email không tồn tại" });
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res.status(400).json({ message: "Vui lòng cung cấp email" });
+    }
 
-    const resetToken = crypto.randomBytes(20).toString("hex");
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
-    await user.save();
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "Email không tồn tại" });
 
-    // If email credentials are not configured, don't attempt to send email
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      // For development convenience, return the token (do NOT do this in production)
-      return res.json({ message: "Reset token created (email not configured)", resetToken });
-    }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+    await user.save();
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(500).json({
+        message: "Email service chưa được cấu hình. Vui lòng bổ sung EMAIL_USER và EMAIL_PASS",
+      });
+    }
 
-    const mailOptions = {
-      to: user.email,
-      from: process.env.EMAIL_USER,
-      subject: "Reset Password Token",
-      text: `Token reset của bạn là: ${resetToken}`,
-    };
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-    await transporter.sendMail(mailOptions);
+    let resetLink;
+    if (process.env.RESET_PASSWORD_URL) {
+      resetLink = process.env.RESET_PASSWORD_URL;
+    } else {
+      const baseResetUrl = `${req.protocol}://${req.get("host")}/api/auth/resetpassword`;
+      resetLink = `${baseResetUrl}/${resetToken}`;
+    }
 
-    res.json({ message: "Đã gửi token reset qua email" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
-  }
+    await transporter.sendMail({
+      to: user.email,
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      subject: "Reset mật khẩu tài khoản của bạn",
+      html: `
+        <p>Xin chào ${user.name || "bạn"},</p>
+        <p>Bạn vừa yêu cầu đặt lại mật khẩu. Vui lòng bấm vào liên kết bên dưới để đi tới trang đặt mật khẩu mới. Mã xác thực chỉ có hiệu lực trong 15 phút.</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+        <p>Mã reset mật khẩu của bạn là: <strong>${resetToken}</strong></p>
+        <p>Hãy sao chép mã này và nhập vào trang reset mật khẩu.</p>
+        <p>Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.</p>
+      `,
+    });
+
+    res.json({ message: "Đã gửi email reset mật khẩu" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
 };
 
-// [POST] /api/auth/reset-password
+// [POST] /api/auth/resetpassword/:token
 exports.resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-  try {
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-    });
-    if (!user) return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+  const { token } = req.params;
+  const { newPassword } = req.body;
+  try {
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+    }
 
-    user.password = newPassword; // nhớ có middleware hash password trong model
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+    if (!user) return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
 
-    res.json({ message: "Đặt lại mật khẩu thành công" });
-  } catch (err) {
-    res.status(500).json({ message: "Lỗi server" });
-  }
+    user.password = newPassword; // middleware sẽ hash
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Đặt lại mật khẩu thành công" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
 };
 
 // [POST] /api/auth/upload-avatar
