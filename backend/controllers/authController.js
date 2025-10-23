@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 // Cần import Cloudinary (Đã được cấu hình trong server.js)
 const cloudinary = require('cloudinary').v2;
-
+const logActivity = require("../middleware/logActivity");
 
 // [POST] /api/auth/signup
 exports.signup = async (req, res) => {
@@ -21,6 +21,8 @@ exports.signup = async (req, res) => {
     // Let the User model's pre-save hook handle password hashing
     const newUser = new User({ name, email, password });
     await newUser.save();
+    await logActivity(newUser._id, "User signed up");
+
 
     res.status(201).json({
       message: 'Đăng ký thành công',
@@ -69,6 +71,7 @@ exports.login = async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
+    await logActivity(user._id, "User logged in");
     // ====== 📨 Trả về phản hồi ======
     res.json({
       message: 'Đăng nhập thành công',
@@ -83,23 +86,25 @@ exports.login = async (req, res) => {
 };
 
 
-// [POST] /api/auth/logout
-// exports.logout = async (req, res) => {
-//   try {
-//     // Với JWT thì logout chỉ cần xóa token phía client
-//     res.json({ message: 'Đăng xuất thành công (xóa token phía client)' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 
 // [POST] /api/auth/logout
 exports.logout = async (req, res) => {
   try {
     const { refreshToken } = req.body;
 
-    // Nếu có refreshToken, xóa nó khỏi DB để vô hiệu hóa
+    // // Nếu có refreshToken, xóa nó khỏi DB để vô hiệu hóa
+    // if (refreshToken) {
+    //   await RefreshToken.deleteOne({ token: refreshToken });
+    // }
+
     if (refreshToken) {
+      const stored = await RefreshToken.findOne({ token: refreshToken });
+
+      // ✅ Ghi log hoạt động nếu tìm thấy người dùng sở hữu token
+      if (stored) {
+        await logActivity(stored.userId, "User logged out");
+      }
+
       await RefreshToken.deleteOne({ token: refreshToken });
     }
 
@@ -118,16 +123,24 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "Email không tồn tại" });
 
-    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
     await user.save();
 
-    // If email credentials are not configured, don't attempt to send email
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      // For development convenience, return the token (do NOT do this in production)
-      return res.json({ message: "Reset token created (email not configured)", resetToken });
-    }
+    let resetLink;
+    if (process.env.RESET_PASSWORD_URL) {
+      resetLink = `${process.env.RESET_PASSWORD_URL}?token=${resetToken}`;
+    } else {
+      const baseResetUrl = `${req.protocol}://${req.get("host")}/api/auth/resetpassword`;
+      resetLink = `${baseResetUrl}/${resetToken}`;
+    }
+
+    // If email credentials are not configured, don't attempt to send email
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      // For development convenience, return the token (do NOT do this in production)
+      return res.json({ message: "Reset token created (email not configured)", resetToken, resetLink });
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -137,16 +150,19 @@ exports.forgotPassword = async (req, res) => {
       },
     });
 
-    const mailOptions = {
-      to: user.email,
-      from: process.env.EMAIL_USER,
-      subject: "Reset Password Token",
-      text: `Token reset của bạn là: ${resetToken}`,
-    };
+    await transporter.sendMail({
+      to: user.email,
+      from: process.env.EMAIL_USER,
+      subject: "Reset Password",
+      html: `
+        <p>Xin chào ${user.name || "bạn"},</p>
+        <p>Bạn vừa yêu cầu đặt lại mật khẩu. Liên kết dưới đây chỉ hiệu lực 15 phút:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+        <p>Nếu không phải bạn, hãy bỏ qua email này.</p>
+      `,
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.json({ message: "Đã gửi token reset qua email" });
+    res.json({ message: "Đã gửi email reset mật khẩu" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Lỗi server" });
