@@ -1,3 +1,5 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,21 +9,26 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS cho frontend gọi được
 
-
 // Kết nối MongoDB
 mongoose.connect(
-  "mongodb+srv://NHUNGOC:lvfcF9JwjEzVG9ZC@cluster0.ixbgxus.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+  process.env.MONGO_URI,
   { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log("✅ Kết nối MongoDB thành công"))
 .catch((err) => console.error("❌ Lỗi kết nối MongoDB:", err));
 
-// Import routes
+// ✅ Import routes
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
 const userRoutes = require('./routes/user');
-app.use('/users', userRoutes); // Mount route
-const profileRoutes = require('./routes/Profile');
+app.use('/users', userRoutes);
+
+const profileRoutes = require('./routes/profile');
 app.use("/profile", profileRoutes);
 
+// Mount logs route before starting server
+app.use("/api/logs", require("./routes/logRoutes"));
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
