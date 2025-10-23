@@ -24,8 +24,11 @@ app.use('/api/auth', authRoutes);
 const userRoutes = require('./routes/user');
 app.use('/users', userRoutes);
 
-const profileRoutes = require('./routes/Profile');
+const profileRoutes = require('./routes/profile');
 app.use("/profile", profileRoutes);
+
+// Mount logs route before starting server
+app.use("/api/logs", require("./routes/logRoutes"));
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
