@@ -9,7 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // ✅ Enable CORS cho frontend gọi được
 
-
 // Kết nối MongoDB
 mongoose.connect(
   process.env.MONGO_URI,
@@ -18,9 +17,13 @@ mongoose.connect(
 .then(() => console.log("✅ Kết nối MongoDB thành công"))
 .catch((err) => console.error("❌ Lỗi kết nối MongoDB:", err));
 
-// Import routes
+// ✅ Import routes
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
 const userRoutes = require('./routes/user');
-app.use('/users', userRoutes); // Mount route
+app.use('/users', userRoutes);
+
 const profileRoutes = require('./routes/Profile');
 app.use("/profile", profileRoutes);
 
