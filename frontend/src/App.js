@@ -2,86 +2,72 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import Admin from "./pages/Admin"; // Sẽ nhận props
+import Admin from "./pages/Admin";
 import ForgotPassword from "./pages/ForgotPassword";
-
-import { useState, useEffect } from "react";
-import axios from "axios";
+import AdminLogPage from "./pages/AdminLogPage"; // 1. Import trang Log
 import Navbar from "./components/Navbar";
 
-// UserList và AddUser nên được import bên trong Admin.js
-// Nơi chúng thực sự được sử dụng
+// 2. Import các component bảo vệ mà bạn đã tạo (theo Bước 6)
+import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
 function App() {
-  // --- TẤT CẢ STATE VÀ HOOKS PHẢI Ở ĐÂY (TOP LEVEL) ---
-
-  const [users, setUsers] = useState([]);
-  const [role, setRole] = useState("");
-
-  // ✅ ĐÚNG: Hook ở top-level
-  useEffect(() => {
-    const savedRole = localStorage.getItem("role");
-    if (savedRole) {
-      setRole(savedRole);
-    }
-  }, []);
-
-  // Lấy danh sách user từ backend
-  // ✅ ĐÚNG: Hàm này giờ chỉ làm một việc là fetch data
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error("Lỗi khi lấy danh sách user:", err);
-    }
-  };
-
-  // ✅ ĐÚNG: Hook ở top-level
-  // Chạy lần đầu để lấy users
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // --- KẾT THÚC KHU VỰC HOOKS ---
+  // --- KHÔNG CÒN useState HAY useEffect Ở ĐÂY ---
+  // Tất cả state (user, role, token) đã được Redux quản lý
+  // Component "Navbar" và các trang khác sẽ tự lấy state từ Redux
 
   return (
     <Router>
       <div style={styles.container}>
         <h1 style={styles.title}>🌐 Ứng dụng Authentication</h1>
 
-        {/* Navbar hiển thị trên mọi trang
-          Nó nhận 'role' từ state ở trên 
-        */}
-        <Navbar role={role} />
+        {/* 3. Navbar sẽ tự động cập nhật nhờ Redux */}
+        <Navbar />
 
-        {/* Thanh điều hướng cũ của bạn (có thể bạn muốn tích hợp vào Navbar) */}
+        {/* Thanh điều hướng cũ này bạn có thể TÍCH HỢP vào Navbar
+          hoặc XÓA ĐI, vì Navbar đã làm nhiệm vụ này rồi.
+          (Mình tạm giữ lại theo file của bạn)
+        */}
         <nav style={styles.nav}>
           <Link style={styles.link} to="/login">Đăng nhập</Link>
           <Link style={styles.link} to="/signup">Đăng ký</Link>
           <Link style={styles.link} to="/profile">Profile</Link>
           <Link style={styles.link} to="/admin">Admin</Link>
+          <Link style={styles.link} to="/admin/logs">Nhật ký</Link>
           <Link style={styles.link} to="/forgot-password">Quên mật khẩu</Link>
+          
+          {/* Bạn nên thêm link này vào Navbar, không phải ở đây */}
+          {/* <Link style={styles.link} to="/admin/logs">Nhật ký</Link> */}
         </nav>
 
         {/* 📍 Nội dung trang */}
         <div style={styles.card}>
           <Routes>
-            <Route path="/signup" element={<Signup />} />
+            {/* === 4. ROUTES CÔNG KHAI === */}
+            {/* Ai cũng vào được */}
             <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={<Profile />} />
-
-            {/* ✅ Sửa lỗi logic: 
-              Truyền state 'users' và hàm 'fetchUsers' vào component Admin
-              Component Admin bây giờ sẽ chứa UserList và AddUser.
-            */}
-            <Route
-              path="/admin"
-              element={<Admin users={users} onAdd={fetchUsers} />}
-            />
-
+            <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* === 5. ROUTES CẦN ĐĂNG NHẬP (User thường) === */}
+            {/* Bọc bởi <ProtectedRoute> */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<Profile />} />
+              {/* Thêm các trang cho user thường ở đây */}
+            </Route>
+
+            {/* === 6. ROUTES CỦA ADMIN === */}
+            {/* Bọc bởi <AdminRoute> (phải là admin mới vào được) */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/logs" element={<AdminLogPage />} />
+              {/* Thêm các trang admin khác ở đây */}
+            </Route>
+
+            {/* Route mặc định (chưa login thì về /login) */}
             <Route path="*" element={<Login />} />
+            {/* (Hoặc bạn có thể trỏ về trang chủ nếu có) */}
+            {/* <Route path="/" element={<HomePage />} /> */}
+
           </Routes>
         </div>
       </div>
@@ -89,6 +75,7 @@ function App() {
   );
 }
 export default App;
+
 
 // ... (giữ nguyên 'styles' của bạn)
 const styles = {

@@ -7,4 +7,4 @@ const logSchema = new mongoose.Schema({
   ip: { type: String }, // optional - lưu IP user
 });
 
-module.exports = mongoose.model('Log', logSchema);
+module.exports = mongoose.models.Log || mongoose.model('Log', logSchema);
