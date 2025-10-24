@@ -31,7 +31,10 @@ router.put("/", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 
+router.get("/", (req, res) => {
+  res.json({ message: "Lấy thông tin thành công!" });
 
 });
 
 module.exports = router;
+});
