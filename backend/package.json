@@ -27,13 +27,13 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-<<<<<<< HEAD
+
   "jsonwebtoken": "^9.0.2",
   "mongoose": "^8.19.1",
 
-=======
+
     "express-rate-limit": "^8.1.0",
->>>>>>> 6808348b20614521df6b9f7e984925a2d7a3ac02
+
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
     "multer": "^2.0.2",

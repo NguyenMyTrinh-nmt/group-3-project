@@ -1,3 +1,4 @@
+
 // logRoutes.js
 const express = require('express');
 const router = express.Router();
@@ -11,3 +12,11 @@ router.get('/all', logController.getLogs);
 router.post('/add', logController.createLog);
 
 module.exports = router;
+const express = require("express");
+const router = express.Router();
+const { getAllLogs } = require("../controllers/logController");
+
+router.get("/", getAllLogs);
+
+module.exports = router;
+

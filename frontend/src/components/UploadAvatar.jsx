@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export default function UploadAvatar({ onUpload }) {
-  const [preview, setPreview] = useState(null);
+  //const [preview, setPreview] = useState(null);
  const [avatar, setAvatar] = useState(null); // avatar preview
   const handleFileChange = (e) => {
     const file = e.target.files[0];

@@ -18,12 +18,19 @@ app.use(express.json());
 app.use(cors()); // ✅ Enable CORS cho frontend gọi được
 
 // Kết nối MongoDB
-mongoose.connect(
-  process.env.MONGO_URI,
-  { useNewUrlParser: true, useUnifiedTopology: true }
-)
+const MONGO_URI = 'mongodb+srv://NHUNGOC:lvfcF9JwjEzVG9ZC@cluster0.ixbgxus.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+
+mongoose.connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000
+})
 .then(() => console.log("✅ Kết nối MongoDB thành công"))
-.catch((err) => console.error("❌ Lỗi kết nối MongoDB:", err));
+.catch((err) => {
+    console.error("❌ Lỗi kết nối MongoDB:", err.message);
+    console.error("Please check your MongoDB connection string and make sure MongoDB is running");
+    process.exit(1);
+});
 
 // ✅ Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -41,7 +48,6 @@ app.use("/api/logs", require("./routes/logRoutes"));
 // Khởi động server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-<<<<<<< HEAD
 console.log("process.cwd():", process.cwd());
 console.log("🔹 MONGO_URI:", process.env.MONGO_URI);
 console.log("🔐 JWT secrets loaded?", {
@@ -81,5 +87,3 @@ app.use("/Profile", profileRoutes);
 // Khởi động server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-=======
->>>>>>> 6808348b20614521df6b9f7e984925a2d7a3ac02
