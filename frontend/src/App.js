@@ -2,7 +2,7 @@
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
+// import Admin from "./pages/Admin";
 import AdminLogPage from "./pages/AdminLogPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
