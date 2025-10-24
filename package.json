@@ -20,5 +20,10 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.9"
+  },
+  "devDependencies": {
+    "@express-rate-limit/tsconfig": "^1.0.2",
+    "@ljharb/tsconfig": "^0.3.2",
+    "@types/node": "^24.9.1"
   }
 }

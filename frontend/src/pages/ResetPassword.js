@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -25,10 +25,7 @@ export default function ResetPassword() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/auth/reset-password", {
-        token,
-        newPassword,
-      });
+      await api.post("/api/auth/reset-password", { token, newPassword });
 
       setMessage("✅ Đổi mật khẩu thành công. Đang chuyển về trang đăng nhập...");
       setNewPassword("");

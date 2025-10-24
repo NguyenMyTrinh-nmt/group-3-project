@@ -11,7 +11,7 @@ export const loginUser = createAsyncThunk(
         try {
             // 3. Sửa "axios.post" -> "api.post"
             // 4. Sửa path -> "/users/login" (đây là path đúng của bạn)
-            const response = await api.post('/users/login', {
+            const response = await api.post('/api/auth/login', {
                 email,
                 password,
             });
@@ -19,11 +19,13 @@ export const loginUser = createAsyncThunk(
             // 5. Sửa lại cho đúng tên token của bạn
             localStorage.setItem('accessToken', response.data.accessToken);
             localStorage.setItem('refreshToken', response.data.refreshToken);
-            localStorage.setItem('role', response.data.user.role); 
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+            const role = response.data.user?.role || 'user';
+            localStorage.setItem('role', role); 
+            const user = { ...response.data.user, role };
+            localStorage.setItem('user', JSON.stringify(user));
             
             return { 
-                user: response.data.user, 
+                user, 
                 token: response.data.accessToken 
             };
         } catch (error) {

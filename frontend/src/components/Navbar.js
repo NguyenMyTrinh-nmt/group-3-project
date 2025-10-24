@@ -1,12 +1,12 @@
-import React from "react";
+import { Link } from "react-router-dom";
 
-export default function Navbar({ role }) {
+export default function Navbar({ role = "guest" }) {
   return (
     <nav>
-      <a href="/">Trang chủ</a>
-      {role === "admin" && <a href="/admin">Quản lý User</a>}
-      {role === "moderator" && <a href="/reports">Báo cáo</a>}
-      {role === "user" && <a href="/profile">Hồ sơ cá nhân</a>}
+      <Link to="/">Trang chủ</Link>
+      {role === "admin" && <Link to="/admin">Quản lý User</Link>}
+      {role === "moderator" && <Link to="/reports">Báo cáo</Link>}
+      {role === "user" && <Link to="/profile">Hồ sơ cá nhân</Link>}
     </nav>
   );
 }

@@ -6,8 +6,15 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const loadMe = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-  const res = await api.get("/api/auth/me"); // backend /api/auth/me trả user
+      const res = await api.get("/profile");
       setUser(res.data);
     } catch (err) {
       setUser(null);
@@ -21,7 +28,7 @@ export function useAuth() {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
+  const res = await api.post("/api/auth/login", { email, password });
     const { accessToken, refreshToken } = res.data;
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
@@ -32,7 +39,7 @@ export function useAuth() {
     try {
       const rt = localStorage.getItem("refreshToken");
       if (rt) {
-        await api.post("/auth/logout", { refreshToken: rt });
+  await api.post("/api/auth/logout", { refreshToken: rt });
       }
     } catch (e) {
       // ignore server error on logout

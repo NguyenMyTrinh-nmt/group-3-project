@@ -1,85 +1,115 @@
 
-import React from 'react';
-import AdminLogs from '../components/AdminLogs';
-import { useAuth } from '../auth/useAuth';
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useAuth } from "../auth/useAuth";
+import api from "../api/axios";
 
 const AdminLogPage = () => {
-  const { user } = useAuth();
-  // Nếu chưa đăng nhập hoặc không phải admin thì không cho xem
-  if (!user || user.role !== 'admin') {
-    return <div>Bạn không có quyền truy cập trang này.</div>;
-  }
-  return (
-    <div>
-      <h2>Nhật ký hoạt động người dùng</h2>
-      <AdminLogs />
-    </div>
-  );
-
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux'; // 1. Import hook để lấy state
-import api from '../api/axios'; // 2. File api của bạn (sửa lại nếu sai đường dẫn)
-
-const AdminLogPage = () => {
+    const { user, loading: authLoading } = useAuth();
+    const { token } = useSelector((state) => state.auth);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // 3. Lấy token từ Redux state
-    const { token } = useSelector((state) => state.auth);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const fetchLogs = async () => {
-            if (!token) return; // Không gọi API nếu không có token
+            if (!token) {
+                if (isMounted) {
+                    setLoading(false);
+                }
+                return;
+            }
 
             try {
-                // 4. GỬI TOKEN TRONG HEADER
-                // Nhờ có proxy, '/api/logs' sẽ tự động trỏ đến 'localhost:5000/api/logs'
-                const res = await api.get('/api/logs', {
+                const response = await api.get("/api/logs", {
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
-                
-                setLogs(res.data);
+
+                if (isMounted) {
+                    setLogs(response.data || []);
+                    setError(null);
+                }
             } catch (err) {
-                console.error('Không thể tải logs:', err);
+                if (isMounted) {
+                    setError("Không thể tải danh sách nhật ký.");
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
 
-        fetchLogs();
-    }, [token]); // 5. Phải có [token] ở đây
+        if (user && user.role === "admin") {
+            fetchLogs();
+        } else if (!authLoading) {
+            setLoading(false);
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [token, user, authLoading]);
+
+    if (authLoading) {
+        return <div>Đang kiểm tra quyền truy cập...</div>;
+    }
+
+    if (!user || user.role !== "admin") {
+        return <div>Bạn không có quyền truy cập trang này.</div>;
+    }
 
     if (loading) {
         return <div>Đang tải dữ liệu...</div>;
     }
 
+    if (error) {
+        return <div>{error}</div>;
+    }
+
     return (
-        <div style={{ padding: '20px' }}> {/* Tạm style */}
+        <div style={{ padding: "20px" }}>
             <h2>Nhật ký hoạt động người dùng</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                    <tr style={{ background: '#f4f4f4' }}>
-                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Người dùng (Email)</th>
-                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Hành động</th>
-                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Thời gian</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {logs.map((log) => (
-                        <tr key={log._id}>
-                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                {log.userId ? log.userId.email : 'Không rõ'}
-                            </td>
-                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{log.action}</td>
-                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                {new Date(log.timestamp).toLocaleString('vi-VN')}
-                            </td>
+            {logs.length === 0 ? (
+                <p>Hiện chưa có nhật ký nào.</p>
+            ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                        <tr style={{ background: "#f4f4f4" }}>
+                            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                Người dùng (Email)
+                            </th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                Hành động
+                            </th>
+                            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                Thời gian
+                            </th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {logs.map((log) => (
+                            <tr key={log._id}>
+                                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                    {log.userId ? log.userId.email : "Không rõ"}
+                                </td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                    {log.action}
+                                </td>
+                                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                    {log.timestamp
+                                        ? new Date(log.timestamp).toLocaleString("vi-VN")
+                                        : "Không rõ"}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 };

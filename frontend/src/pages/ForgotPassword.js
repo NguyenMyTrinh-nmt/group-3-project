@@ -1,25 +1,37 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
+      await api.post("/api/auth/forgot-password", { email });
       setMessage("✅ Vui lòng kiểm tra email của bạn để nhận liên kết đặt lại mật khẩu.");
+      setIsError(false);
       setEmail("");
     } catch (err) {
       setMessage("❌ Email không tồn tại hoặc có lỗi xảy ra.");
+      setIsError(true);
     }
   };
 
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>📩 Quên mật khẩu</h2>
-      {message && <p style={styles.message}>{message}</p>}
+      {message && (
+        <p
+          style={{
+            ...styles.message,
+            color: isError ? "#d9534f" : "#28a745",
+          }}
+        >
+          {message}
+        </p>
+      )}
       <form onSubmit={handleSubmit} style={styles.form}>
         <label style={styles.label}>Email</label>
         <input

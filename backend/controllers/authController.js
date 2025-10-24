@@ -26,7 +26,13 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({
       message: 'Đăng ký thành công',
-      user: { id: newUser._id, name: newUser.name, email: newUser.email },
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        avatar: newUser.avatar,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -77,7 +83,13 @@ exports.login = async (req, res) => {
       message: 'Đăng nhập thành công',
       accessToken,
       refreshToken,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
     });
 
   } catch (err) {
@@ -124,17 +136,18 @@ exports.forgotPassword = async (req, res) => {
     if (!user) return res.status(404).json({ message: "Email không tồn tại" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
     await user.save();
 
-    let resetLink;
-    if (process.env.RESET_PASSWORD_URL) {
-      resetLink = `${process.env.RESET_PASSWORD_URL}?token=${resetToken}`;
-    } else {
-      const baseResetUrl = `${req.protocol}://${req.get("host")}/api/auth/resetpassword`;
-      resetLink = `${baseResetUrl}/${resetToken}`;
-    }
+    const configuredResetUrl = process.env.RESET_PASSWORD_URL;
+    const frontendBase = process.env.FRONTEND_URL;
+    const baseResetUrl = configuredResetUrl
+      ? configuredResetUrl.replace(/\/?$/, "")
+      : `${(frontendBase || "http://localhost:3000").replace(/\/?$/, "")}/reset-password`;
+
+    const separator = baseResetUrl.includes("?") ? "&" : "?";
+    const resetLink = `${baseResetUrl}${separator}token=${resetToken}`;
 
     // If email credentials are not configured, don't attempt to send email
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {

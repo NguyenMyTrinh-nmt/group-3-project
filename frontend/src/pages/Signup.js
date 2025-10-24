@@ -1,10 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
-
+import api from "../api/axios";
 
 export default function Signup() {
-  // Sửa name → username để khớp backend
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
 
   const [message, setMessage] = useState("");
 
@@ -15,10 +13,9 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/signup", form);
+      await api.post("/api/auth/signup", form);
       setMessage("🎉 Đăng ký thành công!");
-
-      setForm({ username: "", email: "", password: "" });
+      setForm({ name: "", email: "", password: "" });
     } catch (err) {
       console.log(err.response?.data); // debug message từ server
       setMessage(err.response?.data?.message || "⚠️ Có lỗi xảy ra!");
@@ -32,9 +29,9 @@ export default function Signup() {
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
-          name="username"  // sửa name
-          placeholder="Tên đăng nhập"
-          value={form.username}
+          name="name"
+          placeholder="Họ tên"
+          value={form.name}
 
           onChange={handleChange}
           required

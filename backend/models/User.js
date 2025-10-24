@@ -1,39 +1,28 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-<<<<<<< Updated upstream
-const bcrypt = require('bcryptjs');
-
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { 
-    type: String, 
-    enum: ['user', 'admin', 'moderator'], // ✅ đủ 3 role
-    default: 'user' 
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ["user", "admin", "moderator"],
+      default: "user",
+    },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
+    avatar: { type: String },
   },
-  // Fields for password reset and avatar
-  resetPasswordToken: { type: String },
-  resetPasswordExpires: { type: Date },
-  avatar: { type: String },
-});
+  { timestamps: true }
+);
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+// Hash password if it changes before save
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-module.exports = mongoose.model('User', userSchema);
-
-
-
-=======
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email:    { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-}, { timestamps: true });
-
-module.exports = mongoose.model('User', userSchema);
->>>>>>> Stashed changes
+module.exports = mongoose.model("User", userSchema);

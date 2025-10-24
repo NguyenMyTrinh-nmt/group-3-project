@@ -5,6 +5,9 @@ const { upload, processAvatar } = require('../middleware/uploadMiddleware'); // 
 const { verifyToken } = require('../middleware/authMiddleware'); 
 const User = require('../models/User'); //  Dùng để cập nhật avatar
 
+/**
+ * @typedef {import('express').Request & { user?: { id: string }, avatarUrl?: string }} AvatarRequest
+ */
 
 // CRUD user routes
 router.get('/', userController.getUsers);
@@ -20,10 +23,20 @@ router.post(
   processAvatar,                  // ✅ Resize + upload (Cloudinary hoặc local)
   async (req, res) => {
     try {
+      const typedReq = /** @type {AvatarRequest} */ (req);
+      const userId = typedReq.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      if (!typedReq.avatarUrl) {
+        return res.status(400).json({ message: 'Missing avatar URL' });
+      }
+
       // Cập nhật avatar URL vào MongoDB
       const user = await User.findByIdAndUpdate(
-        req.user.id,              // lấy id từ token
-        { avatar: req.avatarUrl },
+        userId,
+        { avatar: typedReq.avatarUrl },
         { new: true }
       );
 

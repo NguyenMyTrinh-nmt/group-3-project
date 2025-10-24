@@ -1,84 +1,85 @@
-import { useState } from "react"; // 1. ĐÃ XÓA 'useEffect'
-import { useSelector, useDispatch } from 'react-redux'; 
-import { useNavigate } from 'react-router-dom';
-import api from "../api/axios"; 
-import { logout } from '../redux/authSlice'; 
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import { logout } from "../redux/authSlice";
 import UploadAvatar from "../components/UploadAvatar";
 
 export default function Profile() {
-    const { user, token } = useSelector((state) => state.auth);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const { user, token } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const [form, setForm] = useState({ name: user?.name || "", password: "" });
-    const [message, setMessage] = useState("");
-    const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [form, setForm] = useState({ name: user?.name || "", password: "" });
+  const [message, setMessage] = useState("");
+  const [avatar, setAvatar] = useState(user?.avatar || null);
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+  useEffect(() => {
+    if (user) {
+      setForm({ name: user.name || "", password: "" });
+      setAvatar(user.avatar || null);
+    }
+  }, [user]);
 
-    const handleUpdate = async (e) => {
-        e.preventDefault();
-        try {
-            // 2. ĐÃ XÓA "const res =" (vì không dùng)
-            await api.put("/profile", form, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            setMessage("✅ Cập nhật thông tin thành công!");
-            setForm({ ...form, password: "" });
-        } catch (err) {
-            setMessage("❌ Lỗi khi cập nhật thông tin!");
-        }
-    };
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-    const handleAvatarUpload = async (file) => {
-        setAvatar(URL.createObjectURL(file));
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+    try {
+      await api.put(
+        "/profile",
+        { name: form.name, password: form.password || undefined },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-<<<<<<< HEAD
+      setMessage("✅ Cập nhật thông tin thành công!");
+      setForm((prev) => ({ ...prev, password: "" }));
+    } catch (error) {
+      setMessage("❌ Lỗi khi cập nhật thông tin!");
+    }
+  };
+
+  const handleAvatarUpload = async (file) => {
+    setAvatar(URL.createObjectURL(file));
+
     const formData = new FormData();
-   formData.append("avatar", file);
+    formData.append("avatar", file);
 
     try {
-      const res = await api.post("/profile/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await api.post("/profile/avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      setAvatar(res.data.avatar);
+      setAvatar(response.data.avatar);
       setMessage("✅ Upload avatar thành công!");
-    } catch (err) {
-      console.error("❌ Lỗi khi upload avatar", err);
+    } catch (error) {
+      console.error("❌ Lỗi khi upload avatar", error);
       setMessage("❌ Lỗi khi upload avatar");
     }
   };
-=======
-        const formData = new FormData();
-        formData.append("avatar", file);
 
-        try {
-            // 3. SỬA LUÔN Ở ĐÂY (thêm "const res =")
-            const res = await api.post("/profile/avatar", formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}` 
-                },
-            });
-            setAvatar(res.data.avatar); // <-- 'res' được dùng ở đây
-        } catch (err) {
-            console.error("❌ Lỗi khi upload avatar", err);
-        }
-    };
->>>>>>> origin/feature/redux-protected
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login'); 
-    };
+  if (!user) {
+    return <p>⏳ Đang tải thông tin...</p>;
+  }
 
-    if (!user) return <p>⏳ Đang tải thông tin...</p>; 
+  return (
+    <div style={styles.container}>
+      <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
+      <p style={{ textAlign: "center", fontWeight: "bold" }}>Xin chào, {user.email}</p>
+      {message && <p style={styles.message}>{message}</p>}
 
-<<<<<<< HEAD
-     
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <UploadAvatar onUpload={handleAvatarUpload} />
         {avatar && (
@@ -89,61 +90,33 @@ export default function Profile() {
           />
         )}
       </div>
-=======
-    return (
-        <div style={styles.container}>
-            <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
-            <p style={{textAlign: 'center', fontWeight: 'bold'}}>Xin chào, {user.email}</p> 
-            {message && <p style={styles.message}>{message}</p>}
->>>>>>> origin/feature/redux-protected
 
-            <div style={{ textAlign: "center", marginBottom: "20px" }}>
-                <UploadAvatar onUpload={handleAvatarUpload} />
-                {avatar && (
-                    <img
-                        src={avatar}
-                        alt="Avatar"
-                        style={{ width: "100px", height: "100px", borderRadius: "50%", marginTop: "10px" }}
-                    />
-                )}
-            </div>
+      <form onSubmit={handleUpdate} style={styles.form}>
+        <label style={styles.label}>Tên</label>
+        <input type="text" name="name" value={form.name} onChange={handleChange} style={styles.input} />
+        <label style={styles.label}>Mật khẩu mới</label>
+        <input
+          type="password"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="Để trống nếu không đổi"
+          style={styles.input}
+        />
+        <button type="submit" style={styles.updateBtn}>
+          Lưu thay đổi
+        </button>
+      </form>
 
-            <form onSubmit={handleUpdate} style={styles.form}>
-                <label style={styles.label}>Tên</label>
-                <input
-                    type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    style={styles.input}
-                />
-                <label style={styles.label}>Mật khẩu mới</label>
-                <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Để trống nếu không đổi"
-                    style={styles.input}
-                />
-                <button type="submit" style={styles.updateBtn}>
-                    Lưu thay đổi
-                </button>
-            </form>
-
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-                <button
-                    onClick={handleLogout} 
-                    style={styles.logoutBtn} // Dùng style
-                >
-                    Logout
-                </button>
-            </div>
-        </div>
-    );
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button onClick={handleLogout} style={styles.logoutBtn}>
+          Logout
+        </button>
+      </div>
+    </div>
+  );
 }
 
-// ... (Dán styles của bạn vào đây)
 const styles = {
   container: {
     maxWidth: "400px",
@@ -189,7 +162,7 @@ const styles = {
     cursor: "pointer",
     transition: "0.3s",
   },
-  logoutBtn: { // Style cho nút logout
+  logoutBtn: {
     backgroundColor: "#d9534f",
     color: "white",
     padding: "10px 15px",
@@ -197,5 +170,5 @@ const styles = {
     border: "none",
     cursor: "pointer",
     fontWeight: "bold",
-  }
+  },
 };

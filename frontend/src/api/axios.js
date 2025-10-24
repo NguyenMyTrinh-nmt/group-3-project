@@ -64,7 +64,7 @@ api.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         // NOTE: use axios (not api) to avoid interceptor loop
-        axios.post(`${baseURL}/auth/refresh`, { refreshToken })
+  axios.post(`${baseURL}/api/auth/refresh-token`, { refreshToken })
           .then(({ data }) => {
             const { accessToken, refreshToken: newRefreshToken } = data;
             localStorage.setItem("accessToken", accessToken);
