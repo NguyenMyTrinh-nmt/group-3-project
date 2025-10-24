@@ -7,7 +7,7 @@ export function useAuth() {
 
   const loadMe = async () => {
     try {
-      const res = await api.get("/auth/me"); // backend /auth/me trả user
+  const res = await api.get("/api/auth/me"); // backend /api/auth/me trả user
       setUser(res.data);
     } catch (err) {
       setUser(null);
