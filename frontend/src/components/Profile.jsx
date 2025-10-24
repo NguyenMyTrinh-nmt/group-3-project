@@ -41,7 +41,7 @@ export default function Profile() {
   const handleAvatarUpload = async (file) => {
     setAvatar(URL.createObjectURL(file));
     const formData = new FormData();
-    formData.append("avatar", file);
+    formData.append("upload", file);
 
     try {
       const res = await api.post("/profile/avatar", formData, {

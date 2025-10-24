@@ -10,6 +10,7 @@ async function connectDB() {
     process.exit(1);
   }
   try {
+    console.log("🔌 Connecting to MongoDB...");
     await mongoose.connect(uri);
     console.log("✅ MongoDB connected");
   } catch (err) {

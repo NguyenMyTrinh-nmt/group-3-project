@@ -1,3 +1,5 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,7 +12,7 @@ app.use(cors()); // ✅ Enable CORS cho frontend gọi được
 
 // Kết nối MongoDB
 mongoose.connect(
-  "mongodb+srv://NHUNGOC:lvfcF9JwjEzVG9ZC@cluster0.ixbgxus.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+  process.env.MONGO_URI,
   { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log("✅ Kết nối MongoDB thành công"))
