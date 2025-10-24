@@ -1,48 +1,42 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";        // dùng axios instance thay vì axios trực tiếp
-import { logout } from "../api/auth";  // hàm logout riêng
+import { useState } from "react"; // 1. ĐÃ XÓA 'useEffect'
+import { useSelector, useDispatch } from 'react-redux'; 
+import { useNavigate } from 'react-router-dom';
+import api from "../api/axios"; 
+import { logout } from '../redux/authSlice'; 
 import UploadAvatar from "../components/UploadAvatar";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [form, setForm] = useState({ name: "", password: "" });
-  const [message, setMessage] = useState("");
-  const [avatar, setAvatar] = useState(null);
+    const { user, token } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-  // 🧭 Lấy thông tin user sau khi đăng nhập
-  useEffect(() => {
-    api
-      .get("/profile")
-      .then((res) => {
-        setUser(res.data);
-        setForm({ name: res.data.name, password: "" });
-        if (res.data.avatar) setAvatar(res.data.avatar);
-      })
-      .catch(() => setMessage("⚠️ Token không hợp lệ hoặc hết hạn"));
-  }, []);
+    const [form, setForm] = useState({ name: user?.name || "", password: "" });
+    const [message, setMessage] = useState("");
+    const [avatar, setAvatar] = useState(user?.avatar || null);
 
-  // ✍️ Thay đổi form
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
 
-  // 💾 Cập nhật thông tin
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.put("/profile", form);
-      setUser(res.data);
-      setMessage("✅ Cập nhật thông tin thành công!");
-      setForm({ ...form, password: "" });
-    } catch (err) {
-      setMessage("❌ Lỗi khi cập nhật thông tin!");
-    }
-  };
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            // 2. ĐÃ XÓA "const res =" (vì không dùng)
+            await api.put("/profile", form, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            setMessage("✅ Cập nhật thông tin thành công!");
+            setForm({ ...form, password: "" });
+        } catch (err) {
+            setMessage("❌ Lỗi khi cập nhật thông tin!");
+        }
+    };
 
-  // 🖼️ Upload avatar
-  const handleAvatarUpload = async (file) => {
-    setAvatar(URL.createObjectURL(file)); // preview tạm
+    const handleAvatarUpload = async (file) => {
+        setAvatar(URL.createObjectURL(file));
 
+<<<<<<< HEAD
     const formData = new FormData();
    formData.append("avatar", file);
 
@@ -57,14 +51,33 @@ export default function Profile() {
       setMessage("❌ Lỗi khi upload avatar");
     }
   };
+=======
+        const formData = new FormData();
+        formData.append("avatar", file);
 
-  if (!user) return <p>⏳ Đang tải thông tin...</p>;
+        try {
+            // 3. SỬA LUÔN Ở ĐÂY (thêm "const res =")
+            const res = await api.post("/profile/avatar", formData, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}` 
+                },
+            });
+            setAvatar(res.data.avatar); // <-- 'res' được dùng ở đây
+        } catch (err) {
+            console.error("❌ Lỗi khi upload avatar", err);
+        }
+    };
+>>>>>>> origin/feature/redux-protected
 
-  return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
-      {message && <p style={styles.message}>{message}</p>}
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/login'); 
+    };
 
+    if (!user) return <p>⏳ Đang tải thông tin...</p>; 
+
+<<<<<<< HEAD
      
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <UploadAvatar onUpload={handleAvatarUpload} />
@@ -76,54 +89,61 @@ export default function Profile() {
           />
         )}
       </div>
+=======
+    return (
+        <div style={styles.container}>
+            <h2 style={styles.title}>👤 Thông tin cá nhân</h2>
+            <p style={{textAlign: 'center', fontWeight: 'bold'}}>Xin chào, {user.email}</p> 
+            {message && <p style={styles.message}>{message}</p>}
+>>>>>>> origin/feature/redux-protected
 
-      {/* Form update */}
-      <form onSubmit={handleUpdate} style={styles.form}>
-        <label style={styles.label}>Tên</label>
-        <input
-          type="text"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          style={styles.input}
-        />
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                <UploadAvatar onUpload={handleAvatarUpload} />
+                {avatar && (
+                    <img
+                        src={avatar}
+                        alt="Avatar"
+                        style={{ width: "100px", height: "100px", borderRadius: "50%", marginTop: "10px" }}
+                    />
+                )}
+            </div>
 
-        <label style={styles.label}>Mật khẩu mới</label>
-        <input
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-          placeholder="Để trống nếu không đổi"
-          style={styles.input}
-        />
+            <form onSubmit={handleUpdate} style={styles.form}>
+                <label style={styles.label}>Tên</label>
+                <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    style={styles.input}
+                />
+                <label style={styles.label}>Mật khẩu mới</label>
+                <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Để trống nếu không đổi"
+                    style={styles.input}
+                />
+                <button type="submit" style={styles.updateBtn}>
+                    Lưu thay đổi
+                </button>
+            </form>
 
-        <button type="submit" style={styles.updateBtn}>
-          Lưu thay đổi
-        </button>
-      </form>
-
-      {/* 🔸 Nút Logout */}
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <button
-          onClick={logout}
-          style={{
-            backgroundColor: "#d9534f",
-            color: "white",
-            padding: "10px 15px",
-            borderRadius: "6px",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  );
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <button
+                    onClick={handleLogout} 
+                    style={styles.logoutBtn} // Dùng style
+                >
+                    Logout
+                </button>
+            </div>
+        </div>
+    );
 }
 
+// ... (Dán styles của bạn vào đây)
 const styles = {
   container: {
     maxWidth: "400px",
@@ -169,4 +189,13 @@ const styles = {
     cursor: "pointer",
     transition: "0.3s",
   },
+  logoutBtn: { // Style cho nút logout
+    backgroundColor: "#d9534f",
+    color: "white",
+    padding: "10px 15px",
+    borderRadius: "6px",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }
 };

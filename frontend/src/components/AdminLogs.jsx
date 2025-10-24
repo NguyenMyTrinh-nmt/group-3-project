@@ -5,13 +5,17 @@ export default function AdminLogs() {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
+
     axios.get("/api/logs/all")
+
+    axios.get("/api/logs")
       .then(res => setLogs(res.data))
       .catch(err => console.error(err));
   }, []);
 
   return (
     <div className="p-6">
+
       <h2 className="text-2xl font-semibold mb-4">Nhật ký hoạt động người dùng</h2>
       <table className="w-full border text-left">
         <thead>
@@ -21,20 +25,32 @@ export default function AdminLogs() {
             <th className="px-3 py-2">Hành động</th>
             <th className="px-3 py-2">Thời gian</th>
             <th className="px-3 py-2">IP</th>
+
+      <h2 className="text-2xl font-semibold mb-4">User Activity Logs</h2>
+      <table className="w-full border">
+        <thead>
+          <tr className="bg-gray-200">
+            <th>User</th>
+            <th>Action</th>
+            <th>Timestamp</th>
           </tr>
         </thead>
         <tbody>
           {logs.map(log => (
             <tr key={log._id} className="border-b">
+
               <td className="px-3 py-2">{log.userId?.email || "Ẩn"}</td>
               <td className="px-3 py-2">{log.userId?.name || "Ẩn"}</td>
               <td className="px-3 py-2">{log.action}</td>
               <td className="px-3 py-2">{new Date(log.timestamp).toLocaleString('vi-VN')}</td>
               <td className="px-3 py-2">{log.ip || "Ẩn"}</td>
+
+              <td>{log.userId?.email}</td>
+              <td>{log.action}</td>
+              <td>{new Date(log.timestamp).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </div> 
   );
-}

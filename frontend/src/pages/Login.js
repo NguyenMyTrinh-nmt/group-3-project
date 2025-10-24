@@ -1,49 +1,48 @@
-import { useState } from "react";
-import api from "../api/axios"; // ✅ import axios instance có interceptor
+import { useState, useEffect } from "react"; // 1. Import thêm useEffect
 import { useNavigate } from "react-router-dom";
-
+import { useDispatch, useSelector } from 'react-redux'; // 2. Import Redux Hooks
+import { loginUser } from '../redux/authSlice'; // 3. Import Thunk login
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [message, setMessage] = useState("");
- 
+  
+  // 4. Khởi tạo các hook cần thiết
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
- 
+  // 5. Lấy state từ Redux store (thay vì state "message" cũ)
+  const { isAuthenticated, isLoading, error } = useSelector((state) => state.auth);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
-
-  const handleSubmit = async (e) => {
+ 
+  // 6. Sửa lại hàm handleSubmit để dùng Redux
+  const handleSubmit = (e) => { // Không cần "async" nữa
     e.preventDefault();
-    try {
-      // ✅ gọi API login
-      const res = await api.post("/users/login", form);
-
-      // ✅ lưu token
-      localStorage.setItem("accessToken", res.data.accessToken);
-      localStorage.setItem("refreshToken", res.data.refreshToken);
-
-      if (res.data.user && res.data.user.role) {
-        localStorage.setItem("role", res.data.user.role);
-      } else if (res.data.role) {
-        localStorage.setItem("role", res.data.role);
-      } else {
-        console.warn("Không tìm thấy 'role' trong phản hồi API đăng nhập.");
-      }
-
-      setMessage("🎉 Đăng nhập thành công!");
-      setTimeout(() => navigate("/profile"), 800);
-    } catch (err) {
-      setMessage("⚠️ Sai email hoặc mật khẩu!");
-    }
+    
+    // Thay vì gọi api.post và localStorage...
+    // bạn chỉ cần GỌI (dispatch) HÀNH ĐỘNG (loginUser)
+    // Redux Thunk sẽ tự động gọi API và xử lý state
+    dispatch(loginUser(form)); 
   };
+
+  // 7. Thêm useEffect để tự động chuyển trang KHI ĐĂNG NHẬP THÀNH CÔNG
+  useEffect(() => {
+    // Nếu Redux báo là đã xác thực (isAuthenticated)
+    if (isAuthenticated) {
+        navigate('/profile'); // Tự động chuyển đến trang profile
+    }
+  }, [isAuthenticated, navigate]); // Chạy lại khi 'isAuthenticated' thay đổi
 
   return (
     <div>
       <h2 style={styles.title}>🔐 Đăng nhập</h2>
-      {message && <p style={styles.message}>{message}</p>}
+      
+      {/* 8. Hiển thị thông báo loading hoặc lỗi từ Redux state */}
+      {isLoading && <p style={styles.message}>Đang đăng nhập...</p>}
+      {error && <p style={{...styles.message, color: '#d9534f'}}>{error}</p>}
+      
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.formGroup}>
           <label style={styles.label}>Email</label>
@@ -71,16 +70,18 @@ export default function Login() {
           />
         </div>
 
-        <button type="submit" style={styles.loginBtn}>
-          Đăng nhập
+        {/* 9. Vô hiệu hóa nút khi đang loading */}
+        <button type="submit" style={styles.loginBtn} disabled={isLoading}>
+          {isLoading ? "Đang xử lý..." : "Đăng nhập"}
         </button>
       </form>
     </div>
   );
- 
+  
 }
 
 
+// --- Giữ nguyên không thay đổi ---
 const styles = {
   title: {
     textAlign: "center",
@@ -89,7 +90,7 @@ const styles = {
   },
   message: {
     textAlign: "center",
-    color: "#d9534f",
+    // color: "#d9534f", // Sẽ set ở trên
     fontWeight: "bold",
     marginBottom: "15px",
   },
