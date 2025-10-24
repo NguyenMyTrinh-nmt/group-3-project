@@ -8,7 +8,7 @@ export default function ForgotPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/forgot-password", { email });
+      await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
       setMessage("✅ Vui lòng kiểm tra email của bạn để nhận liên kết đặt lại mật khẩu.");
       setEmail("");
     } catch (err) {

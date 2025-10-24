@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin"; // Sẽ nhận props
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -62,6 +63,7 @@ function App() {
           <Link style={styles.link} to="/profile">Profile</Link>
           <Link style={styles.link} to="/admin">Admin</Link>
           <Link style={styles.link} to="/forgot-password">Quên mật khẩu</Link>
+          <Link style={styles.link} to="/reset-password">Đặt lại mật khẩu</Link>
         </nav>
 
         {/* 📍 Nội dung trang */}
@@ -81,6 +83,7 @@ function App() {
             />
 
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<Login />} />
           </Routes>
         </div>
