@@ -3,6 +3,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin"; // Sẽ nhận props
+import AdminLogPage from "./pages/AdminLogPage";
 import ForgotPassword from "./pages/ForgotPassword";
 
 import { useState, useEffect } from "react";
@@ -61,6 +62,7 @@ function App() {
           <Link style={styles.link} to="/signup">Đăng ký</Link>
           <Link style={styles.link} to="/profile">Profile</Link>
           <Link style={styles.link} to="/admin">Admin</Link>
+          <Link style={styles.link} to="/admin/logs">Nhật ký hoạt động</Link>
           <Link style={styles.link} to="/forgot-password">Quên mật khẩu</Link>
         </nav>
 
@@ -70,16 +72,8 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
-
-            {/* ✅ Sửa lỗi logic: 
-              Truyền state 'users' và hàm 'fetchUsers' vào component Admin
-              Component Admin bây giờ sẽ chứa UserList và AddUser.
-            */}
-            <Route
-              path="/admin"
-              element={<Admin users={users} onAdd={fetchUsers} />}
-            />
-
+            <Route path="/admin" element={<Admin users={users} onAdd={fetchUsers} />} />
+            <Route path="/admin/logs" element={<AdminLogPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="*" element={<Login />} />
           </Routes>
